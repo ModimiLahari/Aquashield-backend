@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from supabase import create_client
 from dotenv import load_dotenv
 import os
-
+from main import manager
 load_dotenv()
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
@@ -63,7 +63,16 @@ def process_sos(data: SOSRequest):
                 "status": "error",
                 "message": str(e)
             }
-
+  # --- LIVE WEBSOCKET ALERTS PUSH ---
+    live_data = {
+        "emergency_type": emergency_type,
+        "severity_level": severity_level,
+        "location": location,
+        "is_emergency": is_emergency,
+        "message": data.message
+    }
+    import json
+    await manager.broadcast(json.dumps(live_data))
     return {
         "status": "success",
         "emergency_type": emergency_type,
